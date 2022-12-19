@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image
@@ -13,7 +14,6 @@ def color_distance(color1, color2):
 def get_dominant_colors(image, color_threshold):
     # Open the image and convert it to RGB
     image = Image.open(image).convert('RGB')
-
     # Get the width and height of the image
     width, height = image.size
 
@@ -61,7 +61,7 @@ def get_dominant_colors(image, color_threshold):
     return dominant_colors
 
 # Function to create the GUI
-# Function to create the GUI
+
 def create_gui():
     # Create the main window
     window = tk.Tk()
@@ -97,6 +97,7 @@ def create_gui():
 def choose_file(threshold_entry, area_entry, min_entry):
     # Open a file dialog to select the image file
     file_path = filedialog.askopenfilename()
+    file_path = reduce_image_size(file_path, max_size=100000)
     if file_path:
         # Get the area of the painting from the entry field
         area = float(area_entry.get())
@@ -126,6 +127,36 @@ def display_results(file_path, threshold_entry, area, min_entry):
         if dominant_colors[color] > lowerV:
             tk.Label(results_window, text=f'{color}: {dominant_colors[color]:.2f}% ({area:.1f} m2, {color_paint[color]:.1f} liters of paint)', fg = color).grid(row=row, column=0, sticky='W')
             row += 1
+
+
+
+
+def reduce_image_size(image_path, max_size=100000):
+    # Open the image
+    image = Image.open(image_path)
+    # Get the size of the image in bytes
+    image_size = os.stat(image_path).st_size
+    # Check if the size is greater than the max size
+    if image_size > max_size:
+        print("Making a duplicate image for analysing purposes")
+        # Calculate the scaling factor
+        scaling_factor = 0.5
+        # Get the new size of the image
+        new_size = (int(image.size[0] * scaling_factor), int(image.size[1] * scaling_factor))
+        # Resize the image
+        image = image.resize(new_size, resample=Image.LANCZOS)
+        
+        # Create a new file path for the duplicate image
+        new_image_path = image_path + "duplicate.jpg"
+        # Save the resized image to the new file path
+        image.save(new_image_path)
+        # Return the new file path
+        return new_image_path
+    else :
+        return image_path
+
+
+
 
 
 # Run the GUI
